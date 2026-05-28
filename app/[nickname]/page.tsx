@@ -4,7 +4,9 @@ import { Suspense, useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { QUESTIONS } from '@/lib/questions'
-import { ChevronRight, Check } from 'lucide-react'
+import { ChevronRight, Check, Copy, Share2 } from 'lucide-react'
+
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://realme-zp.vercel.app'
 
 function Questionnaire() {
   const { nickname } = useParams<{ nickname: string }>()
@@ -14,23 +16,57 @@ function Questionnaire() {
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [invalid, setInvalid] = useState(false)
+  const [isOwner, setIsOwner] = useState(false)
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!nickname || !hash) { setInvalid(true); setLoading(false); return }
-    supabase.from('realme_profiles')
-      .select('*')
-      .eq('nickname', decodeURIComponent(String(nickname)))
-      .maybeSingle()
-      .then(({ data: prof }) => {
-        if (!prof || prof.hash !== hash) { setInvalid(true); setLoading(false); return }
-        setProfile(prof)
-        setLoading(false)
-      })
+
+    Promise.all([
+      // 링크 유효성 확인
+      supabase.from('realme_profiles')
+        .select('*')
+        .eq('nickname', decodeURIComponent(String(nickname)))
+        .maybeSingle(),
+      // 현재 로그인 유저 확인
+      supabase.auth.getSession(),
+    ]).then(async ([{ data: prof }, { data: { session } }]) => {
+      if (!prof || prof.hash !== hash) { setInvalid(true); setLoading(false); return }
+      setProfile(prof)
+
+      // 로그인된 유저가 있으면 본인 링크인지 확인
+      if (session?.user?.email) {
+        const { data: myProf } = await supabase
+          .from('realme_profiles')
+          .select('hash')
+          .eq('email', session.user.email)
+          .maybeSingle()
+        if (myProf?.hash === hash) {
+          setIsOwner(true)
+        }
+      }
+
+      setLoading(false)
+    })
   }, [nickname, hash])
+
+  const handleOwnerLogin = async () => {
+    // 로그인 후 이 페이지로 다시 돌아오도록 저장
+    sessionStorage.setItem('zp_login_next', `/${encodeURIComponent(String(nickname))}?id=${hash}`)
+    await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: { redirectTo: `${SITE}/auth/callback` },
+    })
+  }
+
+  const copyLink = async () => {
+    const link = `${SITE}/${encodeURIComponent(String(nickname))}?id=${hash}`
+    try { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch (_) {}
+  }
 
   const handleSelect = (qId: number, optIdx: number) => {
     const next = { ...answers, [qId]: optIdx }
@@ -65,6 +101,35 @@ function Questionnaire() {
         <div className="text-5xl mb-5">🔗</div>
         <div className="text-white font-black text-xl mb-2">유효하지 않은 링크예요</div>
         <div className="text-gray-500 text-sm">올바른 링크로 다시 접속해주세요</div>
+      </div>
+    </div>
+  )
+
+  // 본인 링크 차단 화면
+  if (isOwner) return (
+    <div className="min-h-screen bg-black flex items-center justify-center p-6">
+      <div className="max-w-sm w-full text-center">
+        <div className="font-bebas text-2xl tracking-widest mb-8" style={{ color: '#FFE600' }}>
+          REAL<span className="text-white">ME</span>
+        </div>
+        <div className="text-5xl mb-5">🙅</div>
+        <div className="text-white font-black text-xl mb-2">본인은 답변할 수 없어요</div>
+        <p className="text-gray-500 text-sm leading-relaxed mb-10">
+          내 링크를 친구들에게 공유하고<br />
+          친구들의 답변으로 내 MBTI를 확인해요
+        </p>
+        <div className="space-y-3">
+          <a href="/"
+            className="block w-full py-3.5 rounded-2xl font-black text-sm text-center transition-all hover:scale-[1.02]"
+            style={{ backgroundColor: '#FFE600', color: '#000' }}>
+            내 결과 보기 →
+          </a>
+          <button onClick={copyLink}
+            className="w-full py-3.5 rounded-2xl font-black text-sm border border-[#333] text-white flex items-center justify-center gap-2 transition-all hover:border-[#FFE600]">
+            {copied ? <Check className="w-4 h-4" style={{ color: '#FFE600' }} /> : <Copy className="w-4 h-4" />}
+            {copied ? '복사 완료!' : '링크 복사해서 친구에게 공유'}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -159,6 +224,14 @@ function Questionnaire() {
           ) : (
             <div className="text-gray-700 text-xs">답변을 선택해주세요</div>
           )}
+        </div>
+
+        {/* 비로그인 상태에서 본인 링크 확인용 */}
+        <div className="mt-6 text-center">
+          <button onClick={handleOwnerLogin}
+            className="text-[11px] text-gray-700 hover:text-gray-500 transition-colors underline underline-offset-2">
+            내 링크인가요? 로그인으로 확인
+          </button>
         </div>
       </div>
     </div>

@@ -9,7 +9,9 @@ export default function AuthCallback() {
 
   useEffect(() => {
     supabase.auth.exchangeCodeForSession(window.location.href).finally(() => {
-      router.replace('/')
+      const next = sessionStorage.getItem('zp_login_next') || '/'
+      sessionStorage.removeItem('zp_login_next')
+      router.replace(next)
     })
   }, [router])
 
