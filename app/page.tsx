@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
-import { calcMbti, MBTI_DESC, QUESTIONS } from '@/lib/questions'
-import { Copy, Check, Users, RefreshCw } from 'lucide-react'
+import { Copy, Check, Users } from 'lucide-react'
 
 const SITE   = process.env.NEXT_PUBLIC_SITE_URL || 'https://realme-zp.vercel.app'
 const ZP_URL = 'https://zp-misery.vercel.app'
@@ -255,29 +254,6 @@ function LandingPage({ onLogin }: { onLogin: () => void }) {
   )
 }
 
-// ─── DASHBOARD ──────────────────────────────────────────────────────────────
-function DimBar({ label, score, left, right }: { label: string; score: number; left: string; right: string }) {
-  const pct = Math.round(score * 100)
-  const isLeft = score >= 0.5
-  return (
-    <div className="mb-4">
-      <div className="flex justify-between text-xs text-gray-400 mb-1">
-        <span className="font-black" style={isLeft ? { color:'#FFE600' } : {}}>{left}</span>
-        <span className="text-gray-600 text-[10px] font-bold">{label}</span>
-        <span className="font-black" style={!isLeft ? { color:'#FFE600' } : {}}>{right}</span>
-      </div>
-      <div className="h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all duration-700"
-          style={{ width:`${isLeft ? pct : 100-pct}%`, backgroundColor:'#FFE600', marginLeft: isLeft ? 0 : 'auto' }} />
-      </div>
-      <div className="flex justify-between text-[10px] text-gray-700 mt-0.5 tabular-nums">
-        <span>{isLeft ? `${pct}%` : ''}</span>
-        <span>{!isLeft ? `${pct}%` : ''}</span>
-      </div>
-    </div>
-  )
-}
-
 // ─── MAIN ───────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [authUser, setAuthUser] = useState<any>(null)
@@ -328,46 +304,27 @@ export default function HomePage() {
     await supabase.auth.signInWithOAuth({ provider:'kakao', options:{ redirectTo:`${SITE}/auth/callback` } })
   }
 
-  const link = profile ? `${SITE}/${encodeURIComponent(profile.nickname)}?id=${profile.hash}` : ''
+  const surveyLink = profile ? `${SITE}/survey/${profile.hash}` : ''
+  const resultLink = profile ? `/result/${profile.hash}` : ''
+  const hasResult  = answerRows.length >= 1
 
   const copyLink = async () => {
-    try { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch (_) {}
+    try { await navigator.clipboard.writeText(surveyLink); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch (_) {}
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <p className="text-sm text-gray-500">로딩 중...</p>
+    <div style={{ minHeight:'100vh', background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <p style={{ fontSize:13, color:'#555' }}>로딩 중...</p>
     </div>
   )
 
   if (!authUser) return <LandingPage onLogin={handleLogin} />
 
-  // ── 로그인 후 대시보드 ──
-  const hasResult = answerRows.length >= 1
-  const mbtiResult = hasResult ? (() => {
-    const merged: Record<number, number[]> = {}
-    QUESTIONS.forEach(q => { merged[q.id] = [] })
-    answerRows.forEach(row => {
-      Object.entries(row.answers || {}).forEach(([qid, idx]) => {
-        if (merged[Number(qid)]) merged[Number(qid)].push(Number(idx))
-      })
-    })
-    const consensus: Record<number, number> = {}
-    QUESTIONS.forEach(q => {
-      const arr = merged[q.id]; if (!arr.length) return
-      const counts = [0,0,0,0]; arr.forEach(i => counts[i]++)
-      consensus[q.id] = counts.indexOf(Math.max(...counts))
-    })
-    return calcMbti(consensus)
-  })() : null
-
-  const desc = mbtiResult ? MBTI_DESC[mbtiResult.type as keyof typeof MBTI_DESC] : null
-
   return (
-    <div style={{ minHeight:'100vh', background:'#000' }}>
-      <header style={{ position:'sticky', top:0, background:'#000', borderBottom:'1px solid #222', zIndex:10 }}>
+    <div style={{ minHeight:'100vh', background:'#0a0a0a' }}>
+      <header style={{ position:'sticky', top:0, background:'#0a0a0a', borderBottom:'1px solid #1a1a1a', zIndex:10 }}>
         <div style={{ maxWidth:680, margin:'0 auto', padding:'12px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22, letterSpacing:4, color:'#FFE000' }}>
+          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22, letterSpacing:4, color:Y }}>
             REAL<span style={{ color:'#f5f5f0' }}>ME</span>
             <span style={{ fontSize:11, fontFamily:'sans-serif', fontWeight:400, color:'#555', marginLeft:8 }}>by ZP</span>
           </div>
@@ -375,74 +332,65 @@ export default function HomePage() {
         </div>
       </header>
 
-      <div style={{ maxWidth:680, margin:'0 auto', padding:'32px 24px', display:'flex', flexDirection:'column', gap:24 }}>
+      <div style={{ maxWidth:680, margin:'0 auto', padding:'32px 24px', display:'flex', flexDirection:'column', gap:20 }}>
 
-        {/* ① 내 링크 */}
-        <div style={{ borderRadius:16, padding:24, border:'2px solid #FFE600', background:'rgba(255,230,0,0.03)', width:'100%', boxSizing:'border-box' }}>
-          <div style={{ fontSize:10, fontWeight:900, letterSpacing:3, color:'#FFE600', marginBottom:12 }}>📎 내 링크</div>
-          <div style={{ fontSize:12, color:'#666', wordBreak:'break-all', fontFamily:'monospace', lineHeight:1.7, marginBottom:16 }}>{link}</div>
+        {/* 소개 문구 */}
+        <div style={{ paddingBottom:4 }}>
+          <div style={{ fontSize:22, fontWeight:900, color:'#f5f5f0', lineHeight:1.4, marginBottom:6 }}>
+            친구들에게 공유하고<br />
+            <span style={{ color:Y }}>진짜 내 MBTI</span>를 알아보세요
+          </div>
+          <div style={{ fontSize:13, color:'#555' }}>아래 링크를 나를 아는 사람들에게 보내보세요 · 완전 익명</div>
+        </div>
+
+        {/* 내 설문 링크 */}
+        <div style={{ borderRadius:16, padding:24, border:`2px solid ${Y}`, background:'rgba(255,224,0,0.03)' }}>
+          <div style={{ fontSize:10, fontWeight:900, letterSpacing:3, color:Y, marginBottom:12 }}>📎 내 설문 링크</div>
+          <div style={{ fontSize:12, color:'#666', wordBreak:'break-all', fontFamily:'monospace', lineHeight:1.7, marginBottom:16 }}>
+            {surveyLink}
+          </div>
           <button onClick={copyLink}
-            style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:12, fontWeight:900, fontSize:13, background:'#FFE600', color:'#000', border:'none', cursor:'pointer' }}>
+            style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:12, fontWeight:900, fontSize:13, background:Y, color:'#000', border:'none', cursor:'pointer' }}>
             {copied ? <Check style={{ width:15, height:15 }} /> : <Copy style={{ width:15, height:15 }} />}
             {copied ? '복사 완료!' : '링크 복사'}
           </button>
         </div>
 
-        {/* ② 응답 현황 */}
-        <div style={{ borderRadius:16, padding:24, background:'#0a0a0a', border:'1px solid #222', width:'100%', boxSizing:'border-box' }}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+        {/* 응답 현황 */}
+        <div style={{ borderRadius:16, padding:24, background:'#0d0d0d', border:'1px solid #1a1a1a' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <Users style={{ width:15, height:15, color:'#FFE600' }} />
-              <span style={{ fontWeight:900, color:'#fff', fontSize:13 }}>응답 현황</span>
+              <Users style={{ width:15, height:15, color:Y }} />
+              <span style={{ fontWeight:900, color:'#f5f5f0', fontSize:13 }}>응답 현황</span>
             </div>
             {hasResult && (
-              <span style={{ fontSize:10, fontWeight:900, padding:'4px 10px', borderRadius:999, background:'#FFE600', color:'#000' }}>결과 공개 중</span>
+              <span style={{ fontSize:10, fontWeight:900, padding:'4px 10px', borderRadius:999, background:Y, color:'#000' }}>결과 공개 중</span>
             )}
           </div>
           <div style={{ display:'flex', alignItems:'baseline', gap:8, marginBottom:4 }}>
-            <span style={{ fontSize:52, fontWeight:900, fontVariantNumeric:'tabular-nums', color: hasResult ? '#FFE600' : '#fff' }}>{answerRows.length}</span>
+            <span style={{ fontSize:52, fontWeight:900, color: hasResult ? Y : '#f5f5f0' }}>{answerRows.length}</span>
             <span style={{ fontSize:14, color:'#555' }}>명 응답</span>
           </div>
-          <p style={{ fontSize:12, color:'#555', marginTop:4 }}>
-            {!hasResult ? '1명만 답변해도 결과가 공개돼요 · 링크를 친구에게 공유하세요' : '더 공유할수록 정확해져요 🎯'}
+          <p style={{ fontSize:12, color:'#444' }}>
+            {!hasResult ? '1명만 답변해도 결과가 공개돼요' : '더 공유할수록 정확해져요 🎯'}
           </p>
         </div>
 
-        {/* ③ MBTI 결과 */}
-        {hasResult && mbtiResult && desc ? (
-          <div style={{ borderRadius:16, padding:24, background:'#0a0a0a', border:'1px solid #222', width:'100%', boxSizing:'border-box' }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
-              <span style={{ fontSize:13, fontWeight:900, color:'#fff' }}>🧠 친구들이 분석한 내 MBTI</span>
-              <div style={{ display:'flex', alignItems:'center', gap:4, fontSize:10, color:'#555' }}>
-                <RefreshCw style={{ width:11, height:11 }} /> 실시간 업데이트
-              </div>
-            </div>
-            <div style={{ textAlign:'center', marginBottom:24 }}>
-              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:88, lineHeight:1, letterSpacing:8, color:'#FFE600', marginBottom:8 }}>{mbtiResult.type}</div>
-              <div style={{ fontSize:32, marginBottom:6 }}>{desc.emoji}</div>
-              <div style={{ fontSize:17, fontWeight:900, color:'#fff', marginBottom:6 }}>{desc.name}</div>
-              <div style={{ fontSize:13, color:'#888', lineHeight:1.7 }}>{desc.desc}</div>
-            </div>
-          </div>
-        ) : (
-          <div style={{ borderRadius:16, padding:40, border:'1px solid #222', textAlign:'center', width:'100%', boxSizing:'border-box' }}>
-            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:52, color:'#1a1a1a', marginBottom:12 }}>MBTI</div>
-            <div style={{ fontWeight:700, color:'#555', fontSize:14 }}>1명이 답변하면 결과가 공개돼요</div>
-            <div style={{ fontSize:12, color:'#444', marginTop:6 }}>친구들에게 링크를 공유해보세요</div>
-          </div>
-        )}
-
-        {/* ④ 차원별 분석 */}
-        {hasResult && mbtiResult && (
-          <div style={{ borderRadius:16, padding:24, background:'#0a0a0a', border:'1px solid #222', width:'100%', boxSizing:'border-box' }}>
-            <div style={{ fontSize:12, color:'#555', fontWeight:900, marginBottom:20 }}>차원별 분석 ({answerRows.length}명 기준)</div>
-            <DimBar label="에너지"   score={mbtiResult.dims.EI.score} left="E 외향" right="I 내향" />
-            <DimBar label="인식"     score={mbtiResult.dims.SN.score} left="S 감각" right="N 직관" />
-            <DimBar label="판단"     score={mbtiResult.dims.TF.score} left="T 사고" right="F 감정" />
-            <DimBar label="생활양식" score={mbtiResult.dims.JP.score} left="J 판단" right="P 인식" />
-            <p style={{ fontSize:11, color:'#444', textAlign:'center', marginTop:16 }}>더 많은 친구가 답변할수록 결과가 정확해져요</p>
-          </div>
-        )}
+        {/* 결과 보기 버튼 */}
+        <a href={resultLink}
+          style={{
+            display:'block', width:'100%', padding:'18px 0', borderRadius:14,
+            fontWeight:900, fontSize:16, textAlign:'center', textDecoration:'none',
+            background: hasResult ? Y : '#111',
+            color: hasResult ? '#000' : '#444',
+            border: hasResult ? 'none' : '1px solid #222',
+            boxSizing:'border-box',
+            transition:'opacity 0.15s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.opacity='0.85')}
+          onMouseLeave={e => (e.currentTarget.style.opacity='1')}>
+          {hasResult ? '내 결과 보기 →' : '결과 보기 (1명 답변 후 공개)'}
+        </a>
 
       </div>
     </div>
