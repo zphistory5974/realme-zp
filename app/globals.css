@@ -1,16 +1,52 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;700;900&family=Space+Mono:wght@400;700&display=swap');
 @import "tailwindcss";
 
-* { box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  background: #000;
-  color: #fff;
+  background: #0a0a0a;
+  color: #f5f5f0;
   font-family: 'Noto Sans KR', sans-serif;
-  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-.font-bebas {
-  font-family: 'Bebas Neue', sans-serif;
-  letter-spacing: 0.05em;
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-bg {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+
+.anim-1 { opacity: 0; animation: fadeUp 0.8s ease forwards 0.2s; }
+.anim-2 { opacity: 0; animation: fadeUp 0.8s ease forwards 0.4s; }
+.anim-3 { opacity: 0; animation: fadeUp 0.8s ease forwards 0.6s; }
+.anim-4 { opacity: 0; animation: fadeUp 0.8s ease forwards 0.8s; }
+
+.hero-bg-pulse { animation: pulse-bg 4s ease-in-out infinite; }
+
+.font-bebas  { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em; }
+.font-mono   { font-family: 'Space Mono', monospace; }
+
+::-webkit-scrollbar       { width: 4px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #FFE000; }
+
+/* ── Landing responsive ── */
+.lp-header  { padding: 20px 48px; }
+.lp-hero    { padding: 140px 48px 80px; }
+.lp-section { padding: 120px 48px; }
+.lp-footer  { padding: 40px 48px; }
+.lp-q-grid  { grid-template-columns: 1fr 1fr; }
+.lp-stat-bar { padding: 20px 48px; gap: 48px; }
+
+@media (max-width: 768px) {
+  .lp-header  { padding: 16px 24px; }
+  .lp-hero    { padding: 120px 24px 60px; }
+  .lp-section { padding: 80px 24px; }
+  .lp-footer  { padding: 32px 24px; flex-direction: column; gap: 16px; text-align: center; }
+  .lp-q-grid  { grid-template-columns: 1fr; }
+  .lp-stat-bar { padding: 16px 24px; gap: 24px; }
 }
