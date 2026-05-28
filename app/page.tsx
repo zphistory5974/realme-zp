@@ -3,16 +3,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Copy, Check, Users } from 'lucide-react'
+import { useTheme } from '@/context/ThemeContext'
+import { getC } from '@/lib/colors'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 const SITE   = process.env.NEXT_PUBLIC_SITE_URL || 'https://realme-zp.vercel.app'
 const ZP_URL = 'https://zp-misery.vercel.app'
-
 const Y  = '#FFE000'
-const W  = '#f5f5f0'
-const BK = '#0a0a0a'
-const G  = '#1a1a1a'
-const GM = '#2a2a2a'
-const GL = '#888'
 
 function generateHash() {
   return Array.from({ length: 12 }, () => Math.random().toString(36)[2]).join('')
@@ -20,6 +17,10 @@ function generateHash() {
 
 // ─── LANDING ────────────────────────────────────────────────────────────────
 function LandingPage({ onLogin }: { onLogin: () => void }) {
+  const { theme } = useTheme()
+  const C = getC(theme)
+  const tx: React.CSSProperties = { transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease' }
+
   const [name, setName] = useState('')
   const [barsOn, setBarsOn] = useState(false)
   const resultRef = useRef<HTMLDivElement>(null)
@@ -58,19 +59,19 @@ function LandingPage({ onLogin }: { onLogin: () => void }) {
 
   const hov = (on: boolean) => (e: React.MouseEvent<HTMLElement>) => {
     const el = e.currentTarget
-    if (on) { el.style.background = GM; el.style.transform = 'translateY(-4px)' }
-    else    { el.style.background = G;  el.style.transform = '' }
+    if (on) { el.style.background = C.cardHover; el.style.transform = 'translateY(-4px)' }
+    else    { el.style.background = C.cardAlt;   el.style.transform = '' }
   }
 
   const btnHov = (on: boolean) => (e: React.MouseEvent<HTMLButtonElement>) => {
     const el = e.currentTarget
-    if (on) { el.style.background = W; el.style.transform = 'translate(-3px,-3px)'; el.style.boxShadow = `3px 3px 0 ${Y}` }
-    else    { el.style.background = Y; el.style.transform = ''; el.style.boxShadow = '' }
+    if (on) { el.style.background = C.text; el.style.transform = 'translate(-3px,-3px)'; el.style.boxShadow = `3px 3px 0 ${Y}` }
+    else    { el.style.background = Y;      el.style.transform = ''; el.style.boxShadow = '' }
   }
 
   const kakaoHov = (on: boolean) => (e: React.MouseEvent<HTMLButtonElement>) => {
     const el = e.currentTarget
-    if (on) { el.style.background = W; el.style.transform = 'translate(-2px,-2px)'; el.style.boxShadow = `2px 2px 0 ${Y}` }
+    if (on) { el.style.background = C.text; el.style.transform = 'translate(-2px,-2px)'; el.style.boxShadow = `2px 2px 0 ${Y}` }
     else    { el.style.background = '#FEE500'; el.style.transform = ''; el.style.boxShadow = '' }
   }
 
@@ -78,40 +79,43 @@ function LandingPage({ onLogin }: { onLogin: () => void }) {
   const secHead = { fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(48px,7vw,80px)' as string, lineHeight: 1, marginBottom: 80, letterSpacing: 1 }
 
   return (
-    <div style={{ background: BK, color: W, fontFamily: "'Noto Sans KR',sans-serif", overflowX: 'hidden', position: 'relative' }}>
+    <div style={{ background: C.bg, color: C.text, fontFamily: "'Noto Sans KR',sans-serif", overflowX: 'hidden', position: 'relative', ...tx }}>
       {/* noise overlay */}
       <div aria-hidden style={{ position:'fixed', inset:0, zIndex:9999, pointerEvents:'none', opacity:0.4,
         backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")` }} />
 
       {/* ── HEADER ── */}
-      <header className="lp-header" style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid #1f1f1f', background:'rgba(10,10,10,0.92)', backdropFilter:'blur(12px)' }}>
-        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:28, letterSpacing:4, color:Y }}>REAL<span style={{ color:W }}>ME</span></div>
-        <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, letterSpacing:3, color:GL, border:'1px solid #333', padding:'5px 12px', textTransform:'uppercase' }}>A ZP PROJECT</div>
+      <header className="lp-header" style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:`1px solid ${C.border}`, background: theme === 'dark' ? 'rgba(10,10,10,0.92)' : 'rgba(255,255,255,0.92)', backdropFilter:'blur(12px)', ...tx }}>
+        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:28, letterSpacing:4, color:Y }}>REAL<span style={{ color:C.text }}>ME</span></div>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, letterSpacing:3, color:C.textMuted, border:`1px solid ${C.borderSub}`, padding:'5px 12px', textTransform:'uppercase' }}>A ZP PROJECT</div>
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* ── HERO ── */}
       <section className="lp-hero" style={{ minHeight:'100vh', display:'flex', flexDirection:'column', justifyContent:'center', position:'relative', overflow:'hidden' }}>
-        <div aria-hidden className="hero-bg-pulse" style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(120px,20vw,280px)', color:'#111', whiteSpace:'nowrap', pointerEvents:'none', letterSpacing:10, userSelect:'none' }}>REAL</div>
+        <div aria-hidden className="hero-bg-pulse" style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(120px,20vw,280px)', color:C.cardAlt, whiteSpace:'nowrap', pointerEvents:'none', letterSpacing:10, userSelect:'none' }}>REAL</div>
         <div className="anim-1 font-mono" style={{ fontSize:11, letterSpacing:4, color:Y, textTransform:'uppercase', marginBottom:24 }}>// Zero Productive — 두 번째 프로젝트</div>
         <h1 className="anim-2" style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(72px,12vw,160px)', lineHeight:0.92, letterSpacing:2, marginBottom:32 }}>
           진짜 나는<br />
           <span style={{ color:Y, display:'block' }}>타인이 안다</span>
         </h1>
-        <p className="anim-3" style={{ fontSize:18, fontWeight:300, color:GL, maxWidth:480, lineHeight:1.8, marginBottom:56 }}>
+        <p className="anim-3" style={{ fontSize:18, fontWeight:300, color:C.textMuted, maxWidth:480, lineHeight:1.8, marginBottom:56 }}>
           당신이 생각하는 당신의 MBTI와<br />
-          <strong style={{ color:W, fontWeight:700 }}>나를 아는 5명이 보는 당신</strong>은 다를 수 있다.<br /><br />
+          <strong style={{ color:C.text, fontWeight:700 }}>나를 아는 5명이 보는 당신</strong>은 다를 수 있다.<br /><br />
           행동은 거짓말을 하지 않는다.
         </p>
         <div className="anim-4" style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
           <button onClick={() => demoRef.current?.scrollIntoView({ behavior:'smooth' })}
             onMouseEnter={btnHov(true)} onMouseLeave={btnHov(false)}
-            style={{ background:Y, color:BK, border:'none', padding:'18px 40px', fontFamily:"'Noto Sans KR',sans-serif", fontSize:15, fontWeight:900, letterSpacing:1, cursor:'pointer', transition:'all 0.2s' }}>
+            style={{ background:Y, color:C.bg, border:'none', padding:'18px 40px', fontFamily:"'Noto Sans KR',sans-serif", fontSize:15, fontWeight:900, letterSpacing:1, cursor:'pointer', transition:'all 0.2s' }}>
             링크 만들기 →
           </button>
           <button onClick={() => howRef.current?.scrollIntoView({ behavior:'smooth' })}
-            style={{ background:'transparent', color:W, border:'1px solid #333', padding:'18px 40px', fontFamily:"'Noto Sans KR',sans-serif", fontSize:15, fontWeight:400, cursor:'pointer', transition:'all 0.2s' }}
+            style={{ background:'transparent', color:C.text, border:`1px solid ${C.borderSub}`, padding:'18px 40px', fontFamily:"'Noto Sans KR',sans-serif", fontSize:15, fontWeight:400, cursor:'pointer', transition:'all 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor=Y; e.currentTarget.style.color=Y }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor='#333'; e.currentTarget.style.color=W }}>
+            onMouseLeave={e => { e.currentTarget.style.borderColor=C.borderSub; e.currentTarget.style.color=C.text }}>
             어떻게 작동하나요?
           </button>
         </div>
@@ -122,24 +126,24 @@ function LandingPage({ onLogin }: { onLogin: () => void }) {
         {[['68%','자기 인식과\n타인 인식이 다름'],['32개','행동 관찰형\n질문'],['5명','나를 아는\n사람의 시선'],['익명','답변자 신원\n완전 비공개']].map(([num, label], i) => (
           <div key={i} style={{ display:'flex', alignItems:'center', gap:12, whiteSpace:'nowrap' }}>
             {i > 0 && <div style={{ width:1, height:40, background:'rgba(0,0,0,0.2)', flexShrink:0 }} />}
-            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:32, color:BK, letterSpacing:2 }}>{num}</div>
+            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:32, color:'#0a0a0a', letterSpacing:2 }}>{num}</div>
             <div style={{ fontSize:11, fontWeight:700, color:'#333', letterSpacing:1, textTransform:'uppercase', lineHeight:1.3, whiteSpace:'pre-line' }}>{label}</div>
           </div>
         ))}
       </div>
 
       {/* ── HOW IT WORKS ── */}
-      <section ref={howRef} className="lp-section" id="how">
+      <section ref={howRef} className="lp-section" id="how" style={{ ...tx }}>
         <div style={secTag}>// 어떻게 작동하나요</div>
         <h2 style={secHead}>4단계로<br />진짜 나를 만난다</h2>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:2 }}>
           {STEPS.map(s => (
             <div key={s.num} onMouseEnter={hov(true)} onMouseLeave={hov(false)}
-              style={{ background:G, padding:'48px 36px', position:'relative', overflow:'hidden', transition:'all 0.3s', cursor:'default' }}>
-              <div aria-hidden style={{ position:'absolute', top:-10, right:16, fontFamily:"'Bebas Neue',sans-serif", fontSize:100, color:'rgba(255,255,255,0.04)', letterSpacing:-2, lineHeight:1, pointerEvents:'none' }}>{s.num}</div>
+              style={{ background:C.cardAlt, padding:'48px 36px', position:'relative', overflow:'hidden', transition:'all 0.3s', cursor:'default' }}>
+              <div aria-hidden style={{ position:'absolute', top:-10, right:16, fontFamily:"'Bebas Neue',sans-serif", fontSize:100, color: theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', letterSpacing:-2, lineHeight:1, pointerEvents:'none' }}>{s.num}</div>
               <div style={{ fontSize:32, marginBottom:20 }}>{s.icon}</div>
               <div style={{ fontSize:16, fontWeight:700, marginBottom:12 }}>{s.title}</div>
-              <div style={{ fontSize:14, fontWeight:300, color:GL, lineHeight:1.8 }}>{s.desc}</div>
+              <div style={{ fontSize:14, fontWeight:300, color:C.textMuted, lineHeight:1.8 }}>{s.desc}</div>
               <div style={{ display:'inline-block', marginTop:20, fontFamily:"'Space Mono',monospace", fontSize:10, letterSpacing:2, color:Y, border:'1px solid #ccb400', padding:'4px 10px' }}>{s.badge}</div>
             </div>
           ))}
@@ -147,18 +151,18 @@ function LandingPage({ onLogin }: { onLogin: () => void }) {
       </section>
 
       {/* ── DEMO: 카카오 로그인 ── */}
-      <section ref={demoRef} className="lp-section" id="demo" style={{ background:G }}>
-        <div style={{ maxWidth:640, background:BK, border:'1px solid #222', padding:'56px' }}>
+      <section ref={demoRef} className="lp-section" id="demo" style={{ background:C.cardAlt, ...tx }}>
+        <div style={{ maxWidth:640, background:C.bg, border:`1px solid ${C.border}`, padding:'56px', ...tx }}>
           <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:40, marginBottom:8, letterSpacing:2 }}>링크 만들기</div>
-          <div style={{ fontSize:14, color:GL, marginBottom:40, fontWeight:300 }}>카카오로 로그인하면 내 닉네임으로 고유 링크가 자동 생성됩니다 — 완전 무료</div>
+          <div style={{ fontSize:14, color:C.textMuted, marginBottom:40, fontWeight:300 }}>카카오로 로그인하면 내 닉네임으로 고유 링크가 자동 생성됩니다 — 완전 무료</div>
           <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:40 }}>
             {['✓  카카오 닉네임으로 고유 링크 자동 생성','✓  친구들이 로그인 없이 바로 답변 가능','✓  1명부터 실시간으로 결과 공개'].map((t,i) => (
-              <div key={i} style={{ fontFamily:"'Space Mono',monospace", fontSize:12, color:GL, letterSpacing:1 }}>{t}</div>
+              <div key={i} style={{ fontFamily:"'Space Mono',monospace", fontSize:12, color:C.textMuted, letterSpacing:1 }}>{t}</div>
             ))}
           </div>
           <button onClick={onLogin}
             onMouseEnter={kakaoHov(true)} onMouseLeave={kakaoHov(false)}
-            style={{ width:'100%', background:'#FEE500', color:BK, border:'none', padding:20, fontFamily:"'Noto Sans KR',sans-serif", fontSize:16, fontWeight:900, cursor:'pointer', letterSpacing:1, display:'flex', alignItems:'center', justifyContent:'center', gap:12, transition:'all 0.2s' }}>
+            style={{ width:'100%', background:'#FEE500', color:'#0a0a0a', border:'none', padding:20, fontFamily:"'Noto Sans KR',sans-serif", fontSize:16, fontWeight:900, cursor:'pointer', letterSpacing:1, display:'flex', alignItems:'center', justifyContent:'center', gap:12, transition:'all 0.2s' }}>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path fillRule="evenodd" clipRule="evenodd" d="M10 2C5.582 2 2 4.918 2 8.5c0 2.27 1.418 4.267 3.556 5.427L4.78 17.2a.25.25 0 00.37.28l4.042-2.72c.266.02.534.03.808.03 4.418 0 8-2.918 8-6.5S14.418 2 10 2z" fill="#000"/>
             </svg>
@@ -168,20 +172,20 @@ function LandingPage({ onLogin }: { onLogin: () => void }) {
       </section>
 
       {/* ── QUESTION PREVIEW ── */}
-      <section className="lp-section" id="questions">
+      <section className="lp-section" id="questions" style={{ ...tx }}>
         <div style={secTag}>// 질문 미리보기</div>
         <h2 style={{ ...secHead, marginBottom:32 }}>이런 질문들로<br />측정합니다</h2>
         <div style={{ marginBottom:40 }}>
-          <label style={{ fontFamily:"'Space Mono',monospace", fontSize:11, letterSpacing:2, color:GL, textTransform:'uppercase' as const, display:'block', marginBottom:10 }}>이름을 입력해서 미리보기</label>
+          <label style={{ fontFamily:"'Space Mono',monospace", fontSize:11, letterSpacing:2, color:C.textMuted, textTransform:'uppercase' as const, display:'block', marginBottom:10 }}>이름을 입력해서 미리보기</label>
           <input value={name} onChange={e => setName(e.target.value)} placeholder="예: 김지수" maxLength={20}
-            onFocus={e => (e.target.style.borderColor=Y)} onBlur={e => (e.target.style.borderColor='#333')}
-            style={{ background:G, border:'1px solid #333', color:W, padding:'12px 16px', fontSize:15, fontFamily:"'Noto Sans KR',sans-serif", outline:'none', width:280 }} />
+            onFocus={e => (e.target.style.borderColor=Y)} onBlur={e => (e.target.style.borderColor=C.border)}
+            style={{ background:C.cardAlt, border:`1px solid ${C.border}`, color:C.text, padding:'12px 16px', fontSize:15, fontFamily:"'Noto Sans KR',sans-serif", outline:'none', width:280, transition:'border-color 0.2s' }} />
         </div>
         <div className="lp-q-grid" style={{ display:'grid', gap:2, maxWidth:960 }}>
           {PREVIEW_QS.map((q, i) => (
-            <div key={i} style={{ background:G, padding:'32px', borderLeft:'3px solid transparent', transition:'all 0.3s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderLeftColor=Y; e.currentTarget.style.background=GM }}
-              onMouseLeave={e => { e.currentTarget.style.borderLeftColor='transparent'; e.currentTarget.style.background=G }}>
+            <div key={i} style={{ background:C.cardAlt, padding:'32px', borderLeft:'3px solid transparent', transition:'all 0.3s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderLeftColor=Y; e.currentTarget.style.background=C.cardHover }}
+              onMouseLeave={e => { e.currentTarget.style.borderLeftColor='transparent'; e.currentTarget.style.background=C.cardAlt }}>
               <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, letterSpacing:3, color:Y, textTransform:'uppercase', marginBottom:10 }}>{q.dim}</div>
               <div style={{ fontSize:15, fontWeight:300, lineHeight:1.7 }}>
                 <span style={{ color:Y, fontWeight:700 }}>{n}</span>
@@ -193,28 +197,28 @@ function LandingPage({ onLogin }: { onLogin: () => void }) {
       </section>
 
       {/* ── RESULT MOCKUP ── */}
-      <section className="lp-section" style={{ background:G }}>
+      <section className="lp-section" style={{ background:C.cardAlt, ...tx }}>
         <div style={secTag}>// 결과 미리보기</div>
         <h2 style={{ ...secHead, marginBottom:48 }}>이런 결과가<br />나옵니다</h2>
-        <div ref={resultRef} style={{ maxWidth:480, background:BK, border:'1px solid #1f1f1f', padding:'56px', position:'relative', overflow:'hidden' }}>
+        <div ref={resultRef} style={{ maxWidth:480, background:C.bg, border:`1px solid ${C.border}`, padding:'56px', position:'relative', overflow:'hidden', ...tx }}>
           <div aria-hidden style={{ position:'absolute', bottom:-60, right:-60, width:200, height:200, borderRadius:'50%', background:Y, opacity:0.04 }} />
-          <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, letterSpacing:3, color:GL, textTransform:'uppercase', marginBottom:32 }}>// REAL ME RESULT · 5명 집계 완료</div>
-          <div style={{ fontSize:18, fontWeight:300, color:GL, marginBottom:8 }}>세상이 보는 <strong style={{ color:W, fontWeight:700 }}>김지수</strong>의 Real Me</div>
+          <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, letterSpacing:3, color:C.textMuted, textTransform:'uppercase', marginBottom:32 }}>// REAL ME RESULT · 5명 집계 완료</div>
+          <div style={{ fontSize:18, fontWeight:300, color:C.textMuted, marginBottom:8 }}>세상이 보는 <strong style={{ color:C.text, fontWeight:700 }}>김지수</strong>의 Real Me</div>
           <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:96, lineHeight:1, color:Y, letterSpacing:8, marginBottom:8 }}>ENFP</div>
-          <div style={{ fontSize:20, fontWeight:300, color:GL, marginBottom:40 }}>활동가형 — 열정적인 자유영혼</div>
-          <div style={{ background:G, padding:'20px 24px', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16, marginBottom:32 }}>
-            {[['내가 생각한 나','INTJ',GL],['타인이 본 나','ENFP',Y]].map(([label,val,col],i) => (
+          <div style={{ fontSize:20, fontWeight:300, color:C.textMuted, marginBottom:40 }}>활동가형 — 열정적인 자유영혼</div>
+          <div style={{ background:C.cardAlt, padding:'20px 24px', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16, marginBottom:32, ...tx }}>
+            {[['내가 생각한 나','INTJ',C.textMuted],['타인이 본 나','ENFP',Y]].map(([label,val,col],i) => (
               <div key={i} style={{ textAlign:'center', flex:1 }}>
-                <div style={{ fontFamily:"'Space Mono',monospace", fontSize:9, letterSpacing:2, color:GL, textTransform:'uppercase', marginBottom:6 }}>{label}</div>
+                <div style={{ fontFamily:"'Space Mono',monospace", fontSize:9, letterSpacing:2, color:C.textMuted, textTransform:'uppercase', marginBottom:6 }}>{label}</div>
                 <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:28, letterSpacing:4, color:col as string }}>{val}</div>
               </div>
-            )).reduce((acc, el, i) => i === 0 ? [el] : [...acc, <div key="div" style={{ fontFamily:"'Space Mono',monospace", fontSize:12, color:'#333' }}>≠</div>, el], [] as React.ReactNode[])}
+            )).reduce((acc, el, i) => i === 0 ? [el] : [...acc, <div key="div" style={{ fontFamily:"'Space Mono',monospace", fontSize:12, color:C.textFaint }}>≠</div>, el], [] as React.ReactNode[])}
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:32 }}>
             {BARS.map(b => (
               <div key={b.d} style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <div style={{ fontFamily:"'Space Mono',monospace", fontSize:11, color:GL, width:20, textAlign:'center' }}>{b.d}</div>
-                <div style={{ flex:1, height:6, background:G }}>
+                <div style={{ fontFamily:"'Space Mono',monospace", fontSize:11, color:C.textMuted, width:20, textAlign:'center' }}>{b.d}</div>
+                <div style={{ flex:1, height:6, background:C.cardAlt, ...tx }}>
                   <div style={{ height:'100%', background:Y, width:barsOn ? `${b.pct}%` : '0%', transition:'width 1.5s ease' }} />
                 </div>
                 <div style={{ fontFamily:"'Space Mono',monospace", fontSize:11, color:Y, width:40, textAlign:'right' }}>{b.pct}%</div>
@@ -222,33 +226,33 @@ function LandingPage({ onLogin }: { onLogin: () => void }) {
             ))}
           </div>
           <div style={{ background:Y, padding:'16px 20px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-            <div style={{ fontSize:12, fontWeight:700, color:BK }}>나는 INTJ인 줄 알았는데, 세상은 ENFP라고 했다.</div>
-            <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, color:BK, opacity:0.6 }}>#RealMe #ZP</div>
+            <div style={{ fontSize:12, fontWeight:700, color:'#0a0a0a' }}>나는 INTJ인 줄 알았는데, 세상은 ENFP라고 했다.</div>
+            <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, color:'#0a0a0a', opacity:0.6 }}>#RealMe #ZP</div>
           </div>
         </div>
       </section>
 
       {/* ── PHILOSOPHY ── */}
-      <section className="lp-section" style={{ textAlign:'center', position:'relative', overflow:'hidden' }}>
-        <div aria-hidden style={{ position:'absolute', top:-40, left:'50%', transform:'translateX(-50%)', fontFamily:"'Bebas Neue',sans-serif", fontSize:400, color:'#111', pointerEvents:'none', lineHeight:1 }}>"</div>
+      <section className="lp-section" style={{ textAlign:'center', position:'relative', overflow:'hidden', ...tx }}>
+        <div aria-hidden style={{ position:'absolute', top:-40, left:'50%', transform:'translateX(-50%)', fontFamily:"'Bebas Neue',sans-serif", fontSize:400, color:C.cardAlt, pointerEvents:'none', lineHeight:1 }}>"</div>
         <p style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(32px,5vw,60px)' as string, lineHeight:1.2, maxWidth:800, margin:'0 auto 32px', position:'relative', zIndex:1, letterSpacing:1 }}>
           AI는 <span style={{ color:Y }}>자기 자신을</span><br />
           객관적으로 볼 수 없다.<br />
           그것은 오직 <span style={{ color:Y }}>인간만이</span><br />
           할 수 있는 일이다.
         </p>
-        <p style={{ fontSize:16, fontWeight:300, color:GL, position:'relative', zIndex:1 }}>타인의 눈으로 자신을 발견하는 것 — 가장 인간적인 행위</p>
-        <a href={ZP_URL} style={{ display:'inline-flex', alignItems:'center', gap:8, marginTop:48, fontFamily:"'Space Mono',monospace", fontSize:12, letterSpacing:3, color:GL, textDecoration:'none', borderBottom:'1px solid #333', paddingBottom:4, position:'relative', zIndex:1, transition:'color 0.2s' }}
+        <p style={{ fontSize:16, fontWeight:300, color:C.textMuted, position:'relative', zIndex:1 }}>타인의 눈으로 자신을 발견하는 것 — 가장 인간적인 행위</p>
+        <a href={ZP_URL} style={{ display:'inline-flex', alignItems:'center', gap:8, marginTop:48, fontFamily:"'Space Mono',monospace", fontSize:12, letterSpacing:3, color:C.textMuted, textDecoration:'none', borderBottom:`1px solid ${C.border}`, paddingBottom:4, position:'relative', zIndex:1, transition:'color 0.2s' }}
           onMouseEnter={e => { e.currentTarget.style.color=Y; e.currentTarget.style.borderBottomColor=Y }}
-          onMouseLeave={e => { e.currentTarget.style.color=GL; e.currentTarget.style.borderBottomColor='#333' }}>
+          onMouseLeave={e => { e.currentTarget.style.color=C.textMuted; e.currentTarget.style.borderBottomColor=C.border }}>
           ← 불행의 역사로 돌아가기
         </a>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="lp-footer" style={{ borderTop:'1px solid #1a1a1a', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+      <footer className="lp-footer" style={{ borderTop:`1px solid ${C.border}`, display:'flex', justifyContent:'space-between', alignItems:'center', ...tx }}>
         <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22, letterSpacing:4, color:Y }}>REAL ME</div>
-        <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, color:GL, letterSpacing:2 }}>A ZP (ZERO PRODUCTIVE) PROJECT · 100% HUMAN</div>
+        <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, color:C.textMuted, letterSpacing:2 }}>A ZP (ZERO PRODUCTIVE) PROJECT · 100% HUMAN</div>
       </footer>
     </div>
   )
@@ -256,11 +260,15 @@ function LandingPage({ onLogin }: { onLogin: () => void }) {
 
 // ─── MAIN ───────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const [authUser, setAuthUser] = useState<any>(null)
-  const [profile,  setProfile]  = useState<any>(null)
+  const { theme } = useTheme()
+  const C = getC(theme)
+  const tx: React.CSSProperties = { transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease' }
+
+  const [authUser,   setAuthUser]   = useState<any>(null)
+  const [profile,    setProfile]    = useState<any>(null)
   const [answerRows, setAnswerRows] = useState<any[]>([])
-  const [loading,  setLoading]  = useState(true)
-  const [copied,   setCopied]   = useState(false)
+  const [loading,    setLoading]    = useState(true)
+  const [copied,     setCopied]     = useState(false)
   const channelRef = useRef<any>(null)
 
   useEffect(() => {
@@ -313,22 +321,25 @@ export default function HomePage() {
   }
 
   if (loading) return (
-    <div style={{ minHeight:'100vh', background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <p style={{ fontSize:13, color:'#555' }}>로딩 중...</p>
+    <div style={{ minHeight:'100vh', background:C.bg, display:'flex', alignItems:'center', justifyContent:'center', ...tx }}>
+      <p style={{ fontSize:13, color:C.textSub }}>로딩 중...</p>
     </div>
   )
 
   if (!authUser) return <LandingPage onLogin={handleLogin} />
 
   return (
-    <div style={{ minHeight:'100vh', background:'#0a0a0a' }}>
-      <header style={{ position:'sticky', top:0, background:'#0a0a0a', borderBottom:'1px solid #1a1a1a', zIndex:10 }}>
+    <div style={{ minHeight:'100vh', background:C.bg, ...tx }}>
+      <header style={{ position:'sticky', top:0, background:C.bg, borderBottom:`1px solid ${C.border}`, zIndex:10, ...tx }}>
         <div style={{ maxWidth:680, margin:'0 auto', padding:'12px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22, letterSpacing:4, color:Y }}>
-            REAL<span style={{ color:'#f5f5f0' }}>ME</span>
-            <span style={{ fontSize:11, fontFamily:'sans-serif', fontWeight:400, color:'#555', marginLeft:8 }}>by ZP</span>
+            REAL<span style={{ color:C.text }}>ME</span>
+            <span style={{ fontSize:11, fontFamily:'sans-serif', fontWeight:400, color:C.textSub, marginLeft:8 }}>by ZP</span>
           </div>
-          <div style={{ fontSize:12, color:'#666', fontWeight:700 }}>{authUser.nickname}</div>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ fontSize:12, color:C.textSub, fontWeight:700 }}>{authUser.nickname}</div>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -336,17 +347,17 @@ export default function HomePage() {
 
         {/* 소개 문구 */}
         <div style={{ paddingBottom:4 }}>
-          <div style={{ fontSize:22, fontWeight:900, color:'#f5f5f0', lineHeight:1.4, marginBottom:6 }}>
+          <div style={{ fontSize:22, fontWeight:900, color:C.text, lineHeight:1.4, marginBottom:6 }}>
             친구들에게 공유하고<br />
             <span style={{ color:Y }}>진짜 내 MBTI</span>를 알아보세요
           </div>
-          <div style={{ fontSize:13, color:'#555' }}>아래 링크를 나를 아는 사람들에게 보내보세요 · 완전 익명</div>
+          <div style={{ fontSize:13, color:C.textSub }}>아래 링크를 나를 아는 사람들에게 보내보세요 · 완전 익명</div>
         </div>
 
         {/* 내 설문 링크 */}
         <div style={{ borderRadius:16, padding:24, border:`2px solid ${Y}`, background:'rgba(255,224,0,0.03)' }}>
           <div style={{ fontSize:10, fontWeight:900, letterSpacing:3, color:Y, marginBottom:12 }}>📎 내 설문 링크</div>
-          <div style={{ fontSize:12, color:'#666', wordBreak:'break-all', fontFamily:'monospace', lineHeight:1.7, marginBottom:16 }}>
+          <div style={{ fontSize:12, color:C.textSub, wordBreak:'break-all', fontFamily:'monospace', lineHeight:1.7, marginBottom:16 }}>
             {surveyLink}
           </div>
           <button onClick={copyLink}
@@ -357,21 +368,21 @@ export default function HomePage() {
         </div>
 
         {/* 응답 현황 */}
-        <div style={{ borderRadius:16, padding:24, background:'#0d0d0d', border:'1px solid #1a1a1a' }}>
+        <div style={{ borderRadius:16, padding:24, background:C.cardMain, border:`1px solid ${C.border}`, ...tx }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
               <Users style={{ width:15, height:15, color:Y }} />
-              <span style={{ fontWeight:900, color:'#f5f5f0', fontSize:13 }}>응답 현황</span>
+              <span style={{ fontWeight:900, color:C.text, fontSize:13 }}>응답 현황</span>
             </div>
             {hasResult && (
               <span style={{ fontSize:10, fontWeight:900, padding:'4px 10px', borderRadius:999, background:Y, color:'#000' }}>결과 공개 중</span>
             )}
           </div>
           <div style={{ display:'flex', alignItems:'baseline', gap:8, marginBottom:4 }}>
-            <span style={{ fontSize:52, fontWeight:900, color: hasResult ? Y : '#f5f5f0' }}>{answerRows.length}</span>
-            <span style={{ fontSize:14, color:'#555' }}>명 응답</span>
+            <span style={{ fontSize:52, fontWeight:900, color: hasResult ? Y : C.text }}>{answerRows.length}</span>
+            <span style={{ fontSize:14, color:C.textSub }}>명 응답</span>
           </div>
-          <p style={{ fontSize:12, color:'#444' }}>
+          <p style={{ fontSize:12, color:C.textFaint }}>
             {!hasResult ? '1명만 답변해도 결과가 공개돼요' : '더 공유할수록 정확해져요 🎯'}
           </p>
         </div>
@@ -381,9 +392,9 @@ export default function HomePage() {
           style={{
             display:'block', width:'100%', padding:'18px 0', borderRadius:14,
             fontWeight:900, fontSize:16, textAlign:'center', textDecoration:'none',
-            background: hasResult ? Y : '#111',
-            color: hasResult ? '#000' : '#444',
-            border: hasResult ? 'none' : '1px solid #222',
+            background: hasResult ? Y : C.cardMain,
+            color: hasResult ? '#000' : C.textFaint,
+            border: hasResult ? 'none' : `1px solid ${C.borderSub}`,
             boxSizing:'border-box',
             transition:'opacity 0.15s',
           }}
