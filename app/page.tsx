@@ -364,93 +364,86 @@ export default function HomePage() {
   const desc = mbtiResult ? MBTI_DESC[mbtiResult.type as keyof typeof MBTI_DESC] : null
 
   return (
-    <div className="min-h-screen bg-black">
-      <header className="sticky top-0 bg-black border-b border-[#222] z-10">
-        <div style={{ maxWidth:1100, margin:'0 auto' }} className="px-6 py-3 flex items-center justify-between">
+    <div style={{ minHeight:'100vh', background:'#000' }}>
+      <header style={{ position:'sticky', top:0, background:'#000', borderBottom:'1px solid #222', zIndex:10 }}>
+        <div style={{ maxWidth:680, margin:'0 auto', padding:'12px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22, letterSpacing:4, color:'#FFE000' }}>
             REAL<span style={{ color:'#f5f5f0' }}>ME</span>
-            <span className="text-gray-600 text-xs font-sans font-normal ml-2">by ZP</span>
+            <span style={{ fontSize:11, fontFamily:'sans-serif', fontWeight:400, color:'#555', marginLeft:8 }}>by ZP</span>
           </div>
-          <div className="text-xs text-gray-400 font-bold">{authUser.nickname}</div>
+          <div style={{ fontSize:12, color:'#666', fontWeight:700 }}>{authUser.nickname}</div>
         </div>
       </header>
 
-      <div style={{ maxWidth:1100, margin:'0 auto' }} className="px-6 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+      <div style={{ maxWidth:680, margin:'0 auto', padding:'32px 24px', display:'flex', flexDirection:'column', gap:24 }}>
 
-          {/* ── 왼쪽: 링크 + 응답 현황 ── */}
-          <div className="space-y-4">
+        {/* ① 내 링크 */}
+        <div style={{ borderRadius:16, padding:24, border:'2px solid #FFE600', background:'rgba(255,230,0,0.03)', width:'100%', boxSizing:'border-box' }}>
+          <div style={{ fontSize:10, fontWeight:900, letterSpacing:3, color:'#FFE600', marginBottom:12 }}>📎 내 링크</div>
+          <div style={{ fontSize:12, color:'#666', wordBreak:'break-all', fontFamily:'monospace', lineHeight:1.7, marginBottom:16 }}>{link}</div>
+          <button onClick={copyLink}
+            style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:12, fontWeight:900, fontSize:13, background:'#FFE600', color:'#000', border:'none', cursor:'pointer' }}>
+            {copied ? <Check style={{ width:15, height:15 }} /> : <Copy style={{ width:15, height:15 }} />}
+            {copied ? '복사 완료!' : '링크 복사'}
+          </button>
+        </div>
 
-            {/* 내 링크 */}
-            <div className="rounded-2xl p-6" style={{ border:'2px solid #FFE600', background:'rgba(255,230,0,0.04)' }}>
-              <div className="text-[10px] font-black tracking-[0.2em] mb-3" style={{ color:'#FFE600' }}>📎 내 링크</div>
-              <div className="text-gray-400 text-xs break-all mb-4 font-mono leading-relaxed">{link}</div>
-              <button onClick={copyLink}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-sm transition-all hover:scale-[1.02]"
-                style={{ backgroundColor:'#FFE600', color:'#000' }}>
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                {copied ? '복사 완료!' : '링크 복사'}
-              </button>
+        {/* ② 응답 현황 */}
+        <div style={{ borderRadius:16, padding:24, background:'#0a0a0a', border:'1px solid #222', width:'100%', boxSizing:'border-box' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <Users style={{ width:15, height:15, color:'#FFE600' }} />
+              <span style={{ fontWeight:900, color:'#fff', fontSize:13 }}>응답 현황</span>
             </div>
-
-            {/* 응답 현황 */}
-            <div className="rounded-2xl p-6 bg-[#0a0a0a] border border-[#222]">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4" style={{ color:'#FFE600' }} />
-                  <span className="font-black text-white text-sm">응답 현황</span>
-                </div>
-                {hasResult && (
-                  <span className="text-[10px] font-black px-2.5 py-1 rounded-full" style={{ backgroundColor:'#FFE600', color:'#000' }}>결과 공개 중</span>
-                )}
-              </div>
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-5xl font-black tabular-nums" style={{ color: hasResult ? '#FFE600' : '#fff' }}>{answerRows.length}</span>
-                <span className="text-gray-500 text-sm">명 응답</span>
-              </div>
-              {!hasResult
-                ? <p className="text-gray-600 text-xs mt-2">1명만 답변해도 결과가 공개돼요 · 링크를 친구에게 공유하세요</p>
-                : <p className="text-gray-600 text-xs mt-1">더 공유할수록 정확해져요 🎯</p>
-              }
-            </div>
-
-          </div>
-
-          {/* ── 오른쪽: MBTI 결과 ── */}
-          <div>
-            {hasResult && mbtiResult && desc ? (
-              <div className="rounded-2xl p-6 bg-[#0a0a0a] border border-[#222]">
-                <div className="flex items-center justify-between mb-5">
-                  <div className="text-sm font-black text-white">🧠 친구들이 분석한 내 MBTI</div>
-                  <div className="flex items-center gap-1 text-[10px] text-gray-600">
-                    <RefreshCw className="w-3 h-3" /> 실시간 업데이트
-                  </div>
-                </div>
-                <div className="text-center mb-6">
-                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:80, lineHeight:1, letterSpacing:8, color:'#FFE600', marginBottom:8 }}>{mbtiResult.type}</div>
-                  <div className="text-3xl mb-2">{desc.emoji}</div>
-                  <div className="text-white font-black text-lg mb-1">{desc.name}</div>
-                  <div className="text-gray-400 text-sm leading-relaxed">{desc.desc}</div>
-                </div>
-                <div className="border-t border-[#222] pt-5">
-                  <div className="text-xs text-gray-600 font-black mb-4">차원별 분석 ({answerRows.length}명 기준)</div>
-                  <DimBar label="에너지"   score={mbtiResult.dims.EI.score} left="E 외향" right="I 내향" />
-                  <DimBar label="인식"     score={mbtiResult.dims.SN.score} left="S 감각" right="N 직관" />
-                  <DimBar label="판단"     score={mbtiResult.dims.TF.score} left="T 사고" right="F 감정" />
-                  <DimBar label="생활양식" score={mbtiResult.dims.JP.score} left="J 판단" right="P 인식" />
-                </div>
-                <p className="text-gray-700 text-xs text-center mt-4">더 많은 친구가 답변할수록 결과가 정확해져요</p>
-              </div>
-            ) : (
-              <div className="rounded-2xl p-10 border border-[#222] text-center">
-                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:48, color:'#1f1f1f', marginBottom:12 }}>MBTI</div>
-                <div className="text-gray-500 font-bold">1명이 답변하면 결과가 공개돼요</div>
-                <div className="text-gray-700 text-xs mt-2">친구들에게 링크를 공유해보세요</div>
-              </div>
+            {hasResult && (
+              <span style={{ fontSize:10, fontWeight:900, padding:'4px 10px', borderRadius:999, background:'#FFE600', color:'#000' }}>결과 공개 중</span>
             )}
           </div>
-
+          <div style={{ display:'flex', alignItems:'baseline', gap:8, marginBottom:4 }}>
+            <span style={{ fontSize:52, fontWeight:900, fontVariantNumeric:'tabular-nums', color: hasResult ? '#FFE600' : '#fff' }}>{answerRows.length}</span>
+            <span style={{ fontSize:14, color:'#555' }}>명 응답</span>
+          </div>
+          <p style={{ fontSize:12, color:'#555', marginTop:4 }}>
+            {!hasResult ? '1명만 답변해도 결과가 공개돼요 · 링크를 친구에게 공유하세요' : '더 공유할수록 정확해져요 🎯'}
+          </p>
         </div>
+
+        {/* ③ MBTI 결과 */}
+        {hasResult && mbtiResult && desc ? (
+          <div style={{ borderRadius:16, padding:24, background:'#0a0a0a', border:'1px solid #222', width:'100%', boxSizing:'border-box' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
+              <span style={{ fontSize:13, fontWeight:900, color:'#fff' }}>🧠 친구들이 분석한 내 MBTI</span>
+              <div style={{ display:'flex', alignItems:'center', gap:4, fontSize:10, color:'#555' }}>
+                <RefreshCw style={{ width:11, height:11 }} /> 실시간 업데이트
+              </div>
+            </div>
+            <div style={{ textAlign:'center', marginBottom:24 }}>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:88, lineHeight:1, letterSpacing:8, color:'#FFE600', marginBottom:8 }}>{mbtiResult.type}</div>
+              <div style={{ fontSize:32, marginBottom:6 }}>{desc.emoji}</div>
+              <div style={{ fontSize:17, fontWeight:900, color:'#fff', marginBottom:6 }}>{desc.name}</div>
+              <div style={{ fontSize:13, color:'#888', lineHeight:1.7 }}>{desc.desc}</div>
+            </div>
+          </div>
+        ) : (
+          <div style={{ borderRadius:16, padding:40, border:'1px solid #222', textAlign:'center', width:'100%', boxSizing:'border-box' }}>
+            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:52, color:'#1a1a1a', marginBottom:12 }}>MBTI</div>
+            <div style={{ fontWeight:700, color:'#555', fontSize:14 }}>1명이 답변하면 결과가 공개돼요</div>
+            <div style={{ fontSize:12, color:'#444', marginTop:6 }}>친구들에게 링크를 공유해보세요</div>
+          </div>
+        )}
+
+        {/* ④ 차원별 분석 */}
+        {hasResult && mbtiResult && (
+          <div style={{ borderRadius:16, padding:24, background:'#0a0a0a', border:'1px solid #222', width:'100%', boxSizing:'border-box' }}>
+            <div style={{ fontSize:12, color:'#555', fontWeight:900, marginBottom:20 }}>차원별 분석 ({answerRows.length}명 기준)</div>
+            <DimBar label="에너지"   score={mbtiResult.dims.EI.score} left="E 외향" right="I 내향" />
+            <DimBar label="인식"     score={mbtiResult.dims.SN.score} left="S 감각" right="N 직관" />
+            <DimBar label="판단"     score={mbtiResult.dims.TF.score} left="T 사고" right="F 감정" />
+            <DimBar label="생활양식" score={mbtiResult.dims.JP.score} left="J 판단" right="P 인식" />
+            <p style={{ fontSize:11, color:'#444', textAlign:'center', marginTop:16 }}>더 많은 친구가 답변할수록 결과가 정확해져요</p>
+          </div>
+        )}
+
       </div>
     </div>
   )
