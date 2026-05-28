@@ -129,15 +129,38 @@ function Questionnaire() {
   const submit = async () => {
     if (Object.keys(answers).length < QUESTIONS.length) return
     setSubmitting(true)
-    const { error } = await supabase.from('realme_answers').insert({
+
+    const userId = session?.user?.id
+
+    // try with respondent_id first (requires DB migration)
+    let { error } = await supabase.from('realme_answers').insert({
       hash: profile.hash,
       answers,
-      respondent_id: session?.user?.id,
+      respondent_id: userId,
     })
+
+    // respondent_id column missing → retry without it
+    if (error?.code === 'PGRST204') {
+      console.warn('[realme submit] respondent_id column not found — retrying without it. Run migration:\nALTER TABLE realme_answers ADD COLUMN IF NOT EXISTS respondent_id text;\nCREATE UNIQUE INDEX IF NOT EXISTS realme_answers_unique_respondent ON realme_answers (hash, respondent_id);')
+      const retry = await supabase.from('realme_answers').insert({
+        hash: profile.hash,
+        answers,
+      })
+      error = retry.error ?? null
+    }
+
     if (error) {
       if (error.code === '23505') { setStage('already_submitted'); return }
-      console.error('[realme submit]', error)
-      alert('제출에 실패했습니다. 다시 시도해주세요.')
+      console.error('[realme submit] error:', {
+        code:    error.code,
+        message: error.message,
+        details: error.details,
+        hint:    error.hint,
+        hash:    profile?.hash,
+        userId,
+        answerCount: Object.keys(answers).length,
+      })
+      alert(`제출에 실패했습니다.\n에러: ${error.message}`)
       setSubmitting(false)
       return
     }
